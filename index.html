@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Captura por Voz</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+    }
+    video, canvas {
+      width: 300px;
+      height: 225px;
+      border: 2px solid #333;
+      background: #000;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <video id="video" autoplay></video>
+  <canvas id="lienzo" width="300" height="225"></canvas>
+  <button id="botonDescarga">Descargar Foto</button>
+
+  <script>
+    const video = document.getElementById('video')
+    const lienzo = document.getElementById('lienzo')
+    const botonDescarga = document.getElementById('botonDescarga')
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(flujo => video.srcObject = flujo)
+
+    const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition
+    const reconocimiento = new Reconocimiento()
+    reconocimiento.lang = 'es-ES'
+    reconocimiento.continuous = true
+    reconocimiento.start()
+
+    reconocimiento.onresult = evento => {
+      const texto = evento.results[evento.results.length - 1][0].transcript
+        .trim()
+        .toLowerCase()
+      if (texto.includes('foto')) {
+        const contexto = lienzo.getContext('2d')
+        contexto.drawImage(video, 0, 0, lienzo.width, lienzo.height)
+      }
+    }
+
+    reconocimiento.onend = () => reconocimiento.start()
+
+    botonDescarga.onclick = () => {
+      const enlace = document.createElement('a')
+      enlace.href = lienzo.toDataURL('image/png')
+      enlace.download = 'foto.png'
+      enlace.click()
+    }
+  </script>
+</body>
+</html>
