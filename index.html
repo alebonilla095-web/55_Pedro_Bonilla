@@ -2,65 +2,61 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Captura por Voz</title>
+  <title>Chistes de Chuck Norris</title>
   <style>
     body {
+      background: #f0f0f0;
+      font-family: Arial, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
-      background: #f5f5f5;
-      font-family: Arial, sans-serif;
+      justify-content: center;
+      height: 100vh;
+      gap: 20px;
     }
-    video, canvas {
-      width: 300px;
-      height: 225px;
-      border: 2px solid #333;
-      background: #000;
+    h1 {
+      color: #333;
     }
     button {
       padding: 10px 20px;
       font-size: 16px;
+      background: #ff5722;
+      color: white;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
+    }
+    button:hover {
+      background: #e64a19;
+    }
+    p {
+      max-width: 500px;
+      text-align: center;
+      font-size: 18px;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <video id="video" autoplay></video>
-  <canvas id="lienzo" width="300" height="225"></canvas>
-  <button id="botonDescarga">Descargar Foto</button>
+  <h1>Chiste de Chuck Norris</h1>
+  <button id="boton">Mostrar chiste</button>
+  <p id="chiste">Haz clic para obtener un chiste.</p>
 
   <script>
-    const video = document.getElementById('video')
-    const lienzo = document.getElementById('lienzo')
-    const botonDescarga = document.getElementById('botonDescarga')
+    const boton = document.getElementById('boton')
+    const chiste = document.getElementById('chiste')
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(flujo => video.srcObject = flujo)
-
-    const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition
-    const reconocimiento = new Reconocimiento()
-    reconocimiento.lang = 'es-ES'
-    reconocimiento.continuous = true
-    reconocimiento.start()
-
-    reconocimiento.onresult = evento => {
-      const texto = evento.results[evento.results.length - 1][0].transcript
-        .trim()
-        .toLowerCase()
-      if (texto.includes('foto')) {
-        const contexto = lienzo.getContext('2d')
-        contexto.drawImage(video, 0, 0, lienzo.width, lienzo.height)
-      }
-    }
-
-    reconocimiento.onend = () => reconocimiento.start()
-
-    botonDescarga.onclick = () => {
-      const enlace = document.createElement('a')
-      enlace.href = lienzo.toDataURL('image/png')
-      enlace.download = 'foto.png'
-      enlace.click()
+    boton.onclick = () => {
+      fetch('https://api.chucknorris.io/jokes/random')
+        .then(respuesta => respuesta.json())
+        .then(datos => {
+          const textoOriginal = datos.value
+          fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(textoOriginal)}&langpair=en|es`)
+            .then(res => res.json())
+            .then(traducido => {
+              chiste.textContent = traducido.responseData.translatedText
+            })
+        })
     }
   </script>
 </body>
